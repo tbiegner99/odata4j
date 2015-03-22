@@ -12,6 +12,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.odata4j.core.Guid;
 import org.odata4j.core.Throwables;
+import org.odata4j.exceptions.ParseException;
 import org.odata4j.expression.OrderByExpression.Direction;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.repack.org.apache.commons.codec.DecoderException;
@@ -79,7 +80,8 @@ public class ExpressionParser {
     }
 
     return Enumerable.create(expressions).select(new Func1<CommonExpression, OrderByExpression>() {
-      public OrderByExpression apply(CommonExpression input) {
+      @Override
+	public OrderByExpression apply(CommonExpression input) {
         if (input instanceof OrderByExpression) {
           return (OrderByExpression) input;
         }
@@ -92,7 +94,8 @@ public class ExpressionParser {
     String msg = "[" + value + "] -> " + Enumerable.create(tokens).join("");
     if (expressions != null) {
       msg = msg + " -> " + Enumerable.create(expressions).select(new Func1<CommonExpression, String>() {
-        public String apply(CommonExpression input) {
+        @Override
+		public String apply(CommonExpression input) {
           return Expression.asPrintString(input);
         }
       }).join(",");
@@ -109,9 +112,11 @@ public class ExpressionParser {
     //  since we support currently simple properties only we have to
     //  confine ourselves to EntitySimpleProperties.
     return Enumerable.create(expressions).select(new Func1<CommonExpression, EntitySimpleProperty>() {
-      public EntitySimpleProperty apply(CommonExpression input) {
-        if (input instanceof EntitySimpleProperty)
-          return (EntitySimpleProperty) input;
+      @Override
+	public EntitySimpleProperty apply(CommonExpression input) {
+        if (input instanceof EntitySimpleProperty) {
+			return (EntitySimpleProperty) input;
+		}
         return null;
       }
     }).toList();
@@ -254,7 +259,7 @@ public class ExpressionParser {
       CommonExpression arg1 = methodArguments.get(0);
       return Expression.round(arg1);
     } else {
-      throw new RuntimeException("Implement method " + methodName);
+      throw new ParseException("Implement method " + methodName);
     }
   }
 
@@ -323,14 +328,14 @@ public class ExpressionParser {
               if (ntoken == null ||
                   (aggregateFunction == AggregateFunction.all && ntoken.type != TokenType.WORD) ||
                   (aggregateFunction == AggregateFunction.any && ntoken.type != TokenType.WORD && ntoken.type != TokenType.CLOSEPAREN)) {
-                throw new RuntimeException("unexpected token: " + (ntoken == null ? "eof" : ntoken.toString()));
+                throw new ParseException("unexpected token: " + (ntoken == null ? "eof" : ntoken.toString()));
               }
               if (ntoken.type == TokenType.WORD) {
                 aggregateVariable = ntoken.value;
                 ni += 1;
                 ntoken = ni < tokens.size() ? tokens.get(ni) : null;
                 if (ntoken == null || ntoken.type != TokenType.SYMBOL || !ntoken.value.equals(":")) {
-                  throw new RuntimeException("expected ':', found: " + (ntoken == null ? "eof" : ntoken.toString()));
+                  throw new ParseException("expected ':', found: " + (ntoken == null ? "eof" : ntoken.toString()));
                 }
                 // now we can parse the predicate, starting after the ':'
                 afterParenIdx = ni + 1;
@@ -387,7 +392,7 @@ public class ExpressionParser {
               List<Token> tokensInsideParens = tokens.subList(afterParenIdx, j);
               CommonExpression expressionInsideParens = readExpression(tokensInsideParens);
               if (!(expressionInsideParens instanceof BoolCommonExpression)) {
-                throw new RuntimeException("illegal any predicate");
+                throw new ParseException("illegal any predicate");
               }
               CommonExpression any = Expression.aggregate(
                   aggregateFunction,
@@ -579,7 +584,8 @@ public class ExpressionParser {
     // Conditional OR: or
     rt = processBinaryExpression(tokens, "or", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         assertType(lhs, BoolCommonExpression.class);
         assertType(rhs, BoolCommonExpression.class);
         return Expression.or((BoolCommonExpression) lhs, (BoolCommonExpression) rhs);
@@ -592,7 +598,8 @@ public class ExpressionParser {
     // Conditional AND: and
     rt = processBinaryExpression(tokens, "and", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         assertType(lhs, BoolCommonExpression.class);
         assertType(rhs, BoolCommonExpression.class);
         return Expression.and((BoolCommonExpression) lhs, (BoolCommonExpression) rhs);
@@ -605,7 +612,8 @@ public class ExpressionParser {
     // Equality: eq ne
     rt = processBinaryExpression(tokens, "eq", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.eq(lhs, rhs);
       }
     });
@@ -614,7 +622,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "ne", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.ne(lhs, rhs);
       }
     });
@@ -625,7 +634,8 @@ public class ExpressionParser {
     // Relational and type testing: lt, gt, le, ge, isof(T) , isof(x,T)
     rt = processBinaryExpression(tokens, "lt", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.lt(lhs, rhs);
       }
     });
@@ -634,7 +644,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "gt", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.gt(lhs, rhs);
       }
     });
@@ -643,7 +654,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "le", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.le(lhs, rhs);
       }
     });
@@ -652,7 +664,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "ge", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.ge(lhs, rhs);
       }
     });
@@ -663,7 +676,8 @@ public class ExpressionParser {
     // Additive: add, sub
     rt = processBinaryExpression(tokens, "add", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.add(lhs, rhs);
       }
     });
@@ -672,7 +686,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "sub", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.sub(lhs, rhs);
       }
     });
@@ -683,7 +698,8 @@ public class ExpressionParser {
     // Multiplicative: mul, div, mod
     rt = processBinaryExpression(tokens, "mul", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.mul(lhs, rhs);
       }
     });
@@ -692,7 +708,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "div", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.div(lhs, rhs);
       }
     });
@@ -701,7 +718,8 @@ public class ExpressionParser {
     }
     rt = processBinaryExpression(tokens, "mod", new Func2<CommonExpression, CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
+      @Override
+	public CommonExpression apply(CommonExpression lhs, CommonExpression rhs) {
         return Expression.mod(lhs, rhs);
       }
     });
@@ -712,7 +730,8 @@ public class ExpressionParser {
     // Unary: not x, -x, cast(T), cast(x,T)
     rt = processUnaryExpression(tokens, "not", true, new Func1<CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression expression) {
+      @Override
+	public CommonExpression apply(CommonExpression expression) {
         return Expression.not(expression);
       }
     });
@@ -721,7 +740,8 @@ public class ExpressionParser {
     }
     rt = processUnaryExpression(tokens, "-", false, new Func1<CommonExpression, CommonExpression>() {
 
-      public CommonExpression apply(CommonExpression expression) {
+      @Override
+	public CommonExpression apply(CommonExpression expression) {
         return Expression.negate(expression);
       }
     });
@@ -729,7 +749,7 @@ public class ExpressionParser {
       return rt;
     }
 
-    throw new RuntimeException("Unable to read expression with tokens: " + tokens);
+    throw new ParseException("Unable to read expression with tokens: " + tokens);
 
   }
 
@@ -798,7 +818,7 @@ public class ExpressionParser {
         current++;
       } else {
         dumpTokens(rt);
-        throw new RuntimeException("Unable to tokenize: " + value + " current: " + current + " rem: " + value.substring(current));
+        throw new ParseException("Unable to tokenize: " + value + " current: " + current + " rem: " + value.substring(current));
       }
     }
 

@@ -127,8 +127,7 @@ public class EntityRequestResource extends BaseResource {
     OEntity entity = this.getRequestEntity(httpHeaders, uriInfo, payload, producer.getMetadata(), entitySetName, OEntityKey.parse(id));
     producer.updateEntity(odataContext, entitySetName, entity);
 
-    // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   /**
@@ -144,8 +143,7 @@ public class EntityRequestResource extends BaseResource {
     @SuppressWarnings("unused")
     OEntity mle = super.createOrUpdateMediaLinkEntry(httpHeaders, uriInfo, entitySet, producer, payload, key, odataContext);
 
-    // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   @POST
@@ -168,29 +166,26 @@ public class EntityRequestResource extends BaseResource {
       OEntity entity = this.getRequestEntity(httpHeaders, uriInfo, payload, producer.getMetadata(), entitySetName, entityKey);
       producer.mergeEntity(context, entitySetName, entity);
 
-      // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     if ("DELETE".equals(method)) {
       producer.deleteEntity(context, entitySetName, entityKey);
 
-      // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     if ("PUT".equals(method)) {
       OEntity entity = this.getRequestEntity(httpHeaders, uriInfo, payload, producer.getMetadata(), entitySetName, OEntityKey.parse(id));
       producer.updateEntity(context, entitySetName, entity);
-
-      // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
-    if (method != null)
-      throw new RuntimeException("Expected a tunnelled PUT, MERGE or DELETE");
-    else
-      throw new MethodNotAllowedException("POST is not allowed for an entity");
+    if (method != null) {
+		throw new MethodNotAllowedException("Expected a tunnelled PUT, MERGE or DELETE");
+	} else {
+		throw new MethodNotAllowedException("POST is not allowed for an entity");
+	}
   }
 
   @DELETE
@@ -240,14 +235,12 @@ public class EntityRequestResource extends BaseResource {
       // get a media link entry from the extension
       OEntity mle = mediaLinkExtension.getMediaLinkEntryForUpdateOrDelete(odataContext, entitySet, entityKey, httpHeaders);
       mediaLinkExtension.deleteStream(odataContext, mle, null /* QueryInfo, may need to get rid of */);
-      // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     producer.deleteEntity(odataContext, entitySetName, entityKey);
 
-    // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   @GET

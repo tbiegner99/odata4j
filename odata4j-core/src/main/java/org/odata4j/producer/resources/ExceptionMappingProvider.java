@@ -43,10 +43,11 @@ public class ExceptionMappingProvider extends BaseResource implements ExceptionM
   @Override
   public Response toResponse(RuntimeException e) {
     ODataProducerException exception;
-    if (e instanceof ODataProducerException)
-      exception = (ODataProducerException) e;
-    else
-      exception = new ServerErrorException(e);
+    if (e instanceof ODataProducerException) {
+		exception = (ODataProducerException) e;
+	} else {
+		exception = new ServerErrorException(e);
+	}
 
     ErrorResponseExtension errorResponseExtension = getODataProducer(providers).findExtension(ErrorResponseExtension.class);
     boolean includeInnerError = errorResponseExtension != null && errorResponseExtension.returnInnerError(httpHeaders, uriInfo, exception);
@@ -65,8 +66,9 @@ public class ExceptionMappingProvider extends BaseResource implements ExceptionM
 
   public static ErrorResponse getErrorResponse(ODataProducerException exception, boolean includeInnerError) {
     OError error = exception.getOError();
-    if (!includeInnerError)
-      error = OErrors.error(error.getCode(), error.getMessage(), null);
+    if (!includeInnerError) {
+		error = OErrors.error(error.getCode(), error.getMessage(), null);
+	}
     return Responses.error(error);
   }
 
