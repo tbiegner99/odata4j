@@ -113,8 +113,9 @@ public class JsonFormatParser {
 
   protected JsonEntry parseEntry(JsonEntryMetaData jemd, EdmEntitySet ees, JsonStreamReader jsr) {
     JsonEntry entry = new JsonEntry(ees, jemd);
-    if (jemd != null)
-      resolveEntityType(entry);
+    if (jemd != null) {
+		resolveEntityType(entry);
+	}
     entry.properties = new ArrayList<OProperty<?>>();
     entry.links = new ArrayList<OLink>();
     while (jsr.hasNext()) {
@@ -348,6 +349,9 @@ public class JsonFormatParser {
     } else if (METADATA_PROPERTY.equals(event.asStartProperty().getName())) {
       // inlined entity or link starting with meta data
       EdmNavigationProperty navProp = entry.getEntityType().findNavigationProperty(name);
+      if(navProp==null) {
+    	  throw new IllegalArgumentException("Property not found: "+name);
+      }
       JsonEntryMetaData jemd = parseMetadata(jsr);
       JsonEntry refentry = parseEntry(jemd, metadata.getEdmEntitySet(navProp.getToRole().getType()), jsr);
 

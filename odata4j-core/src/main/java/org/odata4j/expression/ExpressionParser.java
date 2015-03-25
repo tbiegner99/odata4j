@@ -849,6 +849,7 @@ public class ExpressionParser {
 
   private static int readQuotedString(String value, int start) {
     int rt = start;
+    try{
     while (value.charAt(rt) != '\'' || (rt < value.length() - 1 && value.charAt(rt + 1) == '\'')) {
       if (value.charAt(rt) != '\'') {
         rt++;
@@ -857,6 +858,9 @@ public class ExpressionParser {
       }
     }
     rt++;
+    }catch(StringIndexOutOfBoundsException e) {
+    	throw new ParseException("Quoted String not closed.",e);
+    }
     return rt;
   }
 
